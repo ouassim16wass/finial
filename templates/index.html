@@ -95,7 +95,7 @@
                     contentType: 'application/json',
                     data: JSON.stringify({selected_rows: selectedRows}),
                     success: function(response) {
-                        $("#prediction-results").removeClass("d-none").html("Prédictions: " + response.predictions.join(", "));
+                        $("#prediction-results").removeClass("d-none").html("Prédictions: " + response.predictions.join("$, "));
                     },
                     error: function(xhr) {
                         alert("Erreur: " + xhr.responseJSON.error);

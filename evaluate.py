@@ -1,45 +1,30 @@
-import joblib
+# evaluate.py
 import pandas as pd
-import seaborn as sns
+import joblib
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
-from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
 
 # Charger les données nettoyées
-train_df = pd.read_csv("clean_train_reduced.csv")
+test_df = pd.read_csv("clean_train_reduced.csv")
 
-# Rééchantillonnage SMOTE
-X = train_df.drop(columns=["SalePrice"])
-y = train_df["SalePrice"]
+# Séparation des données
+X = test_df.drop(columns=["SalePrice"])
+y = test_df["SalePrice"]
 
-# Normalisation de la variable cible pour SMOTE
-y_bins = pd.qcut(y, q=3, labels=False)
-
-# Appliquer SMOTE
-smote = SMOTE(sampling_strategy="auto", random_state=42)
-X_resampled, y_resampled = smote.fit_resample(X, y_bins)
-
-# Diviser les données après rééchantillonnage
-X_train, X_test, y_train, y_test = train_test_split(
-    X_resampled, y_resampled, test_size=0.2, random_state=42
-)
-
-# Charger les modèles entraînés
+# Charger les modèles sauvegardés
 rf_model = joblib.load('rf_model.pkl')
 
-# Prédictions après rééchantillonnage
-y_pred_rf = rf_model.predict(X_test)
 
-# Évaluation des modèles après rééchantillonnage
-accuracy = {
-    "Random Forest": accuracy_score(y_test, y_pred_rf),
-}
+# Prédictions avec chaque modèle
+rf_preds = rf_model.predict(X)
+
+
+# Évaluation des modèles
+rf_mae = mean_absolute_error(y, rf_preds)
+
+
+rf_mse = mean_squared_error(y, rf_preds)
+
 
 # Affichage des résultats
-results_df = pd.DataFrame(list(accuracy.items()), columns=["Modèle", "Accuracy"])
-print("Résultats après rééchantillonnage :\n", results_df)
-
-
-
-
+print(f"Random Forest MAE: {rf_mae}, MSE: {rf_mse}")

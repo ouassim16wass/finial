@@ -14,6 +14,7 @@
         <table class="table table-striped table-hover" id="data-table">
             <thead class="table-dark">
                 <tr>
+                    <th>ID</th>
                     <th>Sélection</th>
                     {% for col in data[0].keys() if col != 'Select' %}
                     <th>{{ col }}</th>
@@ -23,6 +24,7 @@
             <tbody>
                 {% for row in data %}
                 <tr>
+                    <td>{{ loop.index }}</td>
                     <td><input type="checkbox" class="row-checkbox"></td>
                     {% for col, val in row.items() if col != 'Select' %}
                     <td>{{ val }}</td>
@@ -77,8 +79,9 @@
                 $("tbody tr:visible").each(function() {
                     let row = {};
                     if ($(this).find(".row-checkbox").is(":checked")) {
+                        row['ID'] = $(this).find("td").first().text();
                         $(this).find("td").each(function(index) {
-                            if (index > 0) row[$("thead th").eq(index).text()] = $(this).text();
+                            if (index > 1) row[$("thead th").eq(index).text()] = $(this).text();
                         });
                         selectedRows.push(row);
                     }
@@ -95,7 +98,8 @@
                     contentType: 'application/json',
                     data: JSON.stringify({selected_rows: selectedRows}),
                     success: function(response) {
-                        $("#prediction-results").removeClass("d-none").html("Prédictions: " + response.predictions.join("$, "));
+                        let predictions = response.predictions.map((pred, index) => `ID: ${selectedRows[index]['ID']} - ${pred}$`);
+                        $("#prediction-results").removeClass("d-none").html("Prédictions: " + predictions.join("<br>"));
                     },
                     error: function(xhr) {
                         alert("Erreur: " + xhr.responseJSON.error);

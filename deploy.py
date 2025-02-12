@@ -1,4 +1,4 @@
-# deploy.py
+# predict.py
 import joblib
 import pandas as pd
 
@@ -11,7 +11,7 @@ test_df = pd.read_csv("clean_test.csv")
 # Effectuer les prédictions
 predictions = rf_model.predict(test_df)
 
-# Sauvegarder les prédictions
+# Sauvegarder les prédictions dans un fichier CSV
 output_df = pd.DataFrame({"Id": range(1, len(predictions) + 1), "Predicted SalePrice": predictions})
 output_df.to_csv("predictions.csv", index=False)
 

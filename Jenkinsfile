@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Cloner le code') {
             steps {
-                git branch: 'main', url: 'https://github.com/ouassim16wass/mini-projet.git'
+                git branch: 'main', url: 'https://github.com/yassindoghriii/mini_projet-mlops.git'
             }
         }
 
@@ -29,7 +29,6 @@ pipeline {
 
         stage('Installer les dépendances') {
             steps {
-                bat 'chcp 65001' // Définit l'encodage en UTF-8
                 bat 'python -m pip install --upgrade pip'
                 bat 'python -m pip install --no-cache-dir -r requirements.txt || exit 1'
             }
@@ -53,13 +52,7 @@ pipeline {
             }
         }
 
-        stage('Déployer les prédictions') {
-            steps {
-                bat 'python deploy.py' 
-            }
-        }
-
-        stage('Construire l\'image Docker avec le modèle') {
+        stage('Construire l\'image Docker avec l\'API Flask') {
             steps {
                 bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest .'
             }
@@ -67,19 +60,9 @@ pipeline {
 
         stage('Push l\'image Docker vers Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'yassin', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     bat "docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest"
-                }
-            }
-        }
-
-        stage('Construire et déployer l\'image Flask') {
-            steps {
-                bat 'docker build -t %DOCKER_REGISTRY%/flask-app:latest .'
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                    bat "docker push %DOCKER_REGISTRY%/flask-app:latest"
                 }
             }
         }

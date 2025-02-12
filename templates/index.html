@@ -10,37 +10,71 @@
 <body class="container mt-4">
     <h2 class="text-center mb-4">Prédictions de Modèle</h2>
     
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Sélection</th>
-                {% for col in data[0].keys() if col != 'Select' %}
-                <th>{{ col }}</th>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="data-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Sélection</th>
+                    {% for col in data[0].keys() if col != 'Select' %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td><input type="checkbox" class="row-checkbox"></td>
+                    {% for col, val in row.items() if col != 'Select' %}
+                    <td>{{ val }}</td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                <td><input type="checkbox" class="row-checkbox"></td>
-                {% for col, val in row.items() if col != 'Select' %}
-                <td>{{ val }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
     
-    <button id="predict-btn" class="btn btn-primary">Faire une prédiction</button>
+    <div class="d-flex justify-content-between">
+        <button id="prev-btn" class="btn btn-secondary">Précédent</button>
+        <button id="next-btn" class="btn btn-secondary">Suivant</button>
+    </div>
+    
+    <button id="predict-btn" class="btn btn-primary mt-3">Faire une prédiction</button>
     
     <h3 class="mt-4">Résultats :</h3>
     <div id="prediction-results" class="alert alert-info d-none"></div>
 
     <script>
         $(document).ready(function() {
+            let rowsPerPage = 10;
+            let rows = $("#data-table tbody tr");
+            let totalPages = Math.ceil(rows.length / rowsPerPage);
+            let currentPage = 1;
+
+            function showPage(page) {
+                let start = (page - 1) * rowsPerPage;
+                let end = start + rowsPerPage;
+                rows.hide().slice(start, end).show();
+            }
+
+            $("#prev-btn").click(function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+
+            $("#next-btn").click(function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+
+            showPage(currentPage);
+
             $("#predict-btn").click(function() {
                 let selectedRows = [];
-                $("tbody tr").each(function() {
+                $("tbody tr:visible").each(function() {
                     let row = {};
                     if ($(this).find(".row-checkbox").is(":checked")) {
                         $(this).find("td").each(function(index) {

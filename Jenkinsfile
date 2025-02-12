@@ -5,7 +5,7 @@ pipeline {
         DATA_PATH = ""  // Les fichiers sont à la racine
         MODEL_PATH = "models/"
         DOCKER_IMAGE_NAME = "mini-projet-model"
-        DOCKER_REGISTRY = "wassim33"
+        DOCKER_REGISTRY = "wassim33"  
     }
 
     stages {
@@ -19,9 +19,9 @@ pipeline {
             steps {
                 script {
                     if (fileExists('train.csv') && fileExists('test.csv')) {
-                        echo "✔️ Les fichiers de données existent, traitement lancé."
+                        echo "✔️ Les fichiers de données existent."
                     } else {
-                        error "❌ Les fichiers de données train.csv et test.csv sont manquants."
+                        error "❌ Les fichiers train.csv et test.csv sont manquants."
                     }
                 }
             }
@@ -29,60 +29,41 @@ pipeline {
 
         stage('Installer les dépendances') {
             steps {
-                bat 'chcp 65001'
+                bat 'chcp 65001' // Définit l'encodage en UTF-8
+                bat 'python -m pip install --upgrade pip'
                 bat 'python -m pip install --no-cache-dir -r requirements.txt || exit 1'
             }
         }
 
         stage('Prétraitement des données') {
             steps {
-                bat 'chcp 65001'
                 bat 'python preprocessing.py'
             }
         }
 
         stage('Entraînement du modèle') {
             steps {
-                bat 'chcp 65001'
                 bat 'python train.py'
             }
         }
 
         stage('Évaluation du modèle') {
             steps {
-                bat 'chcp 65001'
                 bat 'python evaluate.py'
             }
         }
 
-        stage('Déployer les prédictions') {
-            steps {
-                bat 'chcp 65001'
-                bat 'python deploy.py'
-            }
-        }
-
-        stage('Construire l\'image Docker avec le modèle') {
+        stage('Construire l'image Docker avec l'API Flask') {
             steps {
                 bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest .'
             }
         }
 
-        stage('Push de l\'image Docker vers Docker Hub') {
+        stage('Push l'image Docker vers Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'yassin', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     bat "docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest"
-                }
-            }
-        }
-
-        stage('Construire et déployer l\'image Flask') {
-            steps {
-                bat 'docker build -t %DOCKER_REGISTRY%/flask-app:latest .'
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                    bat "docker push %DOCKER_REGISTRY%/flask-app:latest"
                 }
             }
         }
@@ -90,6 +71,18 @@ pipeline {
         stage('Stockage des artefacts') {
             steps {
                 archiveArtifacts artifacts: 'rf_model.pkl, dt_model.pkl, ann_model.pkl', fingerprint: true
+            }
+        }
+
+        stage('Construire et Déployer avec Docker Compose') {
+            steps {
+                bat 'docker-compose up --build -d'
+            }
+        }
+
+        stage('Vérifier les Conteneurs') {
+            steps {
+                bat 'docker ps'
             }
         }
     }

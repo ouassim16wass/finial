@@ -53,15 +53,15 @@ pipeline {
             }
         }
 
-        stage('Construire l'image Docker avec l'API Flask') {
+        stage('Construire l\'image Docker avec l\'API Flask') {
             steps {
                 bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest .'
             }
         }
 
-        stage('Push l'image Docker vers Docker Hub') {
+        stage('Push l\'image Docker vers Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'yassin', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     bat "docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest"
                 }

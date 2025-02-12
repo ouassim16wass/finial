@@ -89,17 +89,17 @@
 
             tableData.slice(start, end).forEach(row => {
                 let rowElement = "<tr>";
-                rowElement += <td><input type="checkbox" class="rowCheckbox"></td>;
+                rowElement += `<td><input type="checkbox" class="rowCheckbox"></td>`;
                 for (let key in row) {
                     if (key !== "Select") {
-                        rowElement += <td>${row[key]}</td>;
+                        rowElement += `<td>${row[key]}</td>`;
                     }
                 }
                 rowElement += "</tr>";
                 tableBody.innerHTML += rowElement;
             });
 
-            document.getElementById("pageNumber").textContent = Page ${page};
+            document.getElementById("pageNumber").textContent = `Page ${page}`;
         }
 
         document.getElementById("prevPage").addEventListener("click", function () {
@@ -117,49 +117,48 @@
         });
 
         function predictSelected() {
-    let selectedRows = [];
-    let checkboxes = document.getElementsByClassName("rowCheckbox");
-    let tableRows = document.getElementById("tableBody").getElementsByTagName("tr");
+            let selectedRows = [];
+            let checkboxes = document.getElementsByClassName("rowCheckbox");
+            let tableRows = document.getElementById("tableBody").getElementsByTagName("tr");
 
-    let columnNames = Object.keys(tableData[0]).filter(key => key !== "Select"); // Liste correcte des colonnes
+            let columnNames = Object.keys(tableData[0]).filter(key => key !== "Select"); // Liste correcte des colonnes
 
-    for (let i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].checked) {
-            let row = tableRows[i];
-            let rowData = {};
-            let cells = row.getElementsByTagName("td");
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    let row = tableRows[i];
+                    let rowData = {};
+                    let cells = row.getElementsByTagName("td");
 
-            for (let j = 1; j < cells.length; j++) {
-                rowData[columnNames[j - 1]] = cells[j].textContent;
+                    for (let j = 1; j < cells.length; j++) {
+                        rowData[columnNames[j - 1]] = cells[j].textContent;
+                    }
+                    selectedRows.push(rowData);
+                }
             }
-            selectedRows.push(rowData);
+
+            if (selectedRows.length === 0) {
+                alert("⚠ Sélectionnez au moins une ligne !");
+                return;
+            }
+
+            // Envoyer les données dans le bon ordre au backend
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ selected_rows: selectedRows })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById("predictions").innerHTML = "Prédictions : " + data.predictions.join(", ");
+                } else {
+                    alert("Erreur : " + data.error);
+                }
+            })
+            .catch(error => console.error("Erreur lors de la requête :", error));
         }
-    }
-
-    if (selectedRows.length === 0) {
-        alert("⚠ Sélectionnez au moins une ligne !");
-        return;
-    }
-
-    // Envoyer les données dans le bon ordre au backend
-    fetch('/predict', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ selected_rows: selectedRows })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "success") {
-            document.getElementById("predictions").innerHTML = "Prédictions : " + data.predictions.join(", ");
-        } else {
-            alert("Erreur : " + data.error);
-        }
-    })
-    .catch(error => console.error("Erreur lors de la requête :", error));
-}
-
 
         displayTable(currentPage);
     </script>

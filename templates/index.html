@@ -89,17 +89,17 @@
 
             tableData.slice(start, end).forEach(row => {
                 let rowElement = "<tr>";
-                rowElement += `<td><input type="checkbox" class="rowCheckbox"></td>`;
+                rowElement += <td><input type="checkbox" class="rowCheckbox"></td>;
                 for (let key in row) {
                     if (key !== "Select") {
-                        rowElement += `<td>${row[key]}</td>`;
+                        rowElement += <td>${row[key]}</td>;
                     }
                 }
                 rowElement += "</tr>";
                 tableBody.innerHTML += rowElement;
             });
 
-            document.getElementById("pageNumber").textContent = `Page ${page}`;
+            document.getElementById("pageNumber").textContent = Page ${page};
         }
 
         document.getElementById("prevPage").addEventListener("click", function () {
@@ -137,7 +137,7 @@
     }
 
     if (selectedRows.length === 0) {
-        alert("⚠️ Sélectionnez au moins une ligne !");
+        alert("⚠ Sélectionnez au moins une ligne !");
         return;
     }
 
@@ -159,6 +159,7 @@
     })
     .catch(error => console.error("Erreur lors de la requête :", error));
 }
+
 
         displayTable(currentPage);
     </script>

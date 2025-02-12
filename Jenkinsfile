@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DATA_PATH = ""  // Les fichiers sont à la racine, donc pas de sous-dossier
+        DATA_PATH = ""  // Les fichiers sont à la racine
         MODEL_PATH = "models/"
-        DOCKER_IMAGE_NAME = "mini-projet-model"  // Nom de l'image Docker
-        DOCKER_REGISTRY = "wassim33"  // Ton nom d'utilisateur Docker Hub
+        DOCKER_IMAGE_NAME = "mini-projet-model"
+        DOCKER_REGISTRY = "wassim33"
     }
 
     stages {
@@ -29,36 +29,36 @@ pipeline {
 
         stage('Installer les dépendances') {
             steps {
-                bat 'chcp 65001' // Définit l'encodage en UTF-8
+                bat 'chcp 65001'
                 bat 'python -m pip install --no-cache-dir -r requirements.txt || exit 1'
             }
         }
 
-        stage('Prétraitement des données avec Docker') {
+        stage('Prétraitement des données') {
             steps {
-                bat 'chcp 65001' // Définit l'encodage en UTF-8
+                bat 'chcp 65001'
                 bat 'python preprocessing.py'
             }
         }
 
         stage('Entraînement du modèle') {
             steps {
-                bat 'chcp 65001' // Définit l'encodage en UTF-8
+                bat 'chcp 65001'
                 bat 'python train.py'
             }
         }
 
         stage('Évaluation du modèle') {
             steps {
-                bat 'chcp 65001' // Définit l'encodage en UTF-8
+                bat 'chcp 65001'
                 bat 'python evaluate.py'
             }
         }
 
         stage('Déployer les prédictions') {
             steps {
-                bat 'chcp 65001' // Définit l'encodage en UTF-8
-                bat 'python deploy.py' // Ajoute cette ligne pour générer les prédictions
+                bat 'chcp 65001'
+                bat 'python deploy.py'
             }
         }
 
@@ -68,10 +68,10 @@ pipeline {
             }
         }
 
-        stage('Push l\'image Docker vers Docker Hub') {
+        stage('Push de l\'image Docker vers Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     bat "docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest"
                 }
             }
@@ -81,7 +81,7 @@ pipeline {
             steps {
                 bat 'docker build -t %DOCKER_REGISTRY%/flask-app:latest .'
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     bat "docker push %DOCKER_REGISTRY%/flask-app:latest"
                 }
             }

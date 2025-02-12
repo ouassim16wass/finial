@@ -5,13 +5,13 @@ pipeline {
         DATA_PATH = ""  // Les fichiers sont à la racine
         MODEL_PATH = "models/"
         DOCKER_IMAGE_NAME = "mini-projet-model"
-        DOCKER_REGISTRY = "yassindoghri"  
+        DOCKER_REGISTRY = "wassim33"  
     }
 
     stages {
         stage('Cloner le code') {
             steps {
-                git branch: 'main', url: 'https://github.com/yassindoghriii/mini_projet-mlops.git'
+                git branch: 'main', url: 'https://github.com/ouassim16wass/finial.git'
             }
         }
 

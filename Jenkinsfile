@@ -29,40 +29,40 @@ pipeline {
 
         stage('Installer les dépendances') {
             steps {
-                sh 'python3 -m pip install --upgrade pip'
-                sh 'python3 -m pip install --no-cache-dir -r requirements.txt || exit 1'
+                bat 'python -m pip install --upgrade pip'
+                bat 'python -m pip install --no-cache-dir -r requirements.txt || exit 1'
             }
         }
 
         stage('Prétraitement des données') {
             steps {
-                sh 'python3 preprocessing.py'
+                bat 'python preprocessing.py'
             }
         }
 
         stage('Entraînement du modèle') {
             steps {
-                sh 'python3 train.py'
+                bat 'python train.py'
             }
         }
 
         stage('Évaluation du modèle') {
             steps {
-                sh 'python3 evaluate.py'
+                bat 'python evaluate.py'
             }
         }
 
         stage('Construire l\'image Docker avec l\'API Flask') {
             steps {
-                sh 'docker build -t $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:latest .'
+                bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest .'
             }
         }
 
         stage('Push l\'image Docker vers Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                    sh "docker push $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:latest"
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                    bat "docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest"
                 }
             }
         }
@@ -73,15 +73,15 @@ pipeline {
             }
         }
 
-            stage('Construire et Déployer avec Docker Compose') {
+        stage('Construire et Déployer avec Docker Compose') {
             steps {
-                sh 'docker-compose up --build -d'
+                bat 'docker-compose up --build -d'
             }
         }
 
         stage('Vérifier les Conteneurs') {
             steps {
-                sh 'docker ps'
+                bat 'docker ps'
             }
         }
     }

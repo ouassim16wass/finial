@@ -70,7 +70,7 @@ def predict():
         return jsonify({'error': str(e)}), 500
 
 
-if _name_ == '_main_':
+if _name_ == 'app = Flask(__name__):
     with app.app_context():
         db.create_all()
     app.run(debug=True)

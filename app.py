@@ -4,7 +4,7 @@ import joblib
 import pandas as pd
 import os
 
-app = Flask(__name__)
+app = Flask(_name_)
 
 # 🔹 Configuration de la base PostgreSQL
 DB_USER = "myuser"  # Remplace par ton utilisateur PostgreSQL

@@ -1,0 +1,15 @@
+pandas
+numpy
+scipy
+scikit-learn
+seaborn
+matplotlib
+imblearn
+joblib
+jupyter
+tensorflow
+keras
+flask
+gunicorn
+flask-sqlalchemy
+psycopg2-binary

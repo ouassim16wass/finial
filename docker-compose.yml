@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: model_predictions
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: flask_api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db/model_predictions
+    ports:
+      - "5000:5000"
+    networks:
+      - app_network
+
+  model:
+    build: .
+    container_name: model_service
+    restart: always
+    depends_on:
+      - api
+    command: ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

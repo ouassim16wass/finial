@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédictions de Modèle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn {
+            padding: 10px 15px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #005f73;
+        }
+        .pagination {
+            margin-top: 20px;
+        }
+        .pagination button {
+            margin: 5px;
+            padding: 10px;
+        }
+        #predictions {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Tableau des Données de Test</h2>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Sélectionner</th>
+                {% for col in data[0].keys() if col != "Select" %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Contenu dynamique inséré ici -->
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <button id="prevPage" class="btn">Précédent</button>
+        <span id="pageNumber">Page 1</span>
+        <button id="nextPage" class="btn">Suivant</button>
+    </div>
+
+    <button class="btn" onclick="predictSelected()">Faire une Prédiction</button>
+
+    <h3 id="predictions"></h3>
+
+    <script>
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let tableData = JSON.parse('{{ data | tojson | safe }}');
+
+        function displayTable(page) {
+            let start = (page - 1) * rowsPerPage;
+            let end = start + rowsPerPage;
+            let tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = "";
+
+            tableData.slice(start, end).forEach(row => {
+                let rowElement = "<tr>";
+                rowElement += `<td><input type="checkbox" class="rowCheckbox"></td>`;
+                for (let key in row) {
+                    if (key !== "Select") {
+                        rowElement += `<td>${row[key]}</td>`;
+                    }
+                }
+                rowElement += "</tr>";
+                tableBody.innerHTML += rowElement;
+            });
+
+            document.getElementById("pageNumber").textContent = `Page ${page}`;
+        }
+
+        document.getElementById("prevPage").addEventListener("click", function () {
+            if (currentPage > 1) {
+                currentPage--;
+                displayTable(currentPage);
+            }
+        });
+
+        document.getElementById("nextPage").addEventListener("click", function () {
+            if (currentPage * rowsPerPage < tableData.length) {
+                currentPage++;
+                displayTable(currentPage);
+            }
+        });
+
+        function predictSelected() {
+    let selectedRows = [];
+    let checkboxes = document.getElementsByClassName("rowCheckbox");
+    let tableRows = document.getElementById("tableBody").getElementsByTagName("tr");
+
+    let columnNames = Object.keys(tableData[0]).filter(key => key !== "Select"); // Liste correcte des colonnes
+
+    for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            let row = tableRows[i];
+            let rowData = {};
+            let cells = row.getElementsByTagName("td");
+
+            for (let j = 1; j < cells.length; j++) {
+                rowData[columnNames[j - 1]] = cells[j].textContent;
+            }
+            selectedRows.push(rowData);
+        }
+    }
+
+    if (selectedRows.length === 0) {
+        alert("⚠️ Sélectionnez au moins une ligne !");
+        return;
+    }
+
+    // Envoyer les données dans le bon ordre au backend
+    fetch('/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ selected_rows: selectedRows })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            document.getElementById("predictions").innerHTML = "Prédictions : " + data.predictions.join(", ");
+        } else {
+            alert("Erreur : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur lors de la requête :", error));
+}
+
+        displayTable(currentPage);
+    </script>
+
+</body>
+</html>

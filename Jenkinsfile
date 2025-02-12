@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Cloner le code') {
             steps {
-                git branch: 'main', url: 'https://github.com/ouassim16wass/finial.git'
+                git branch: 'main', url: 'https://github.com/ouassim16wass/mini-projet.git'
             }
         }
 
@@ -53,7 +53,13 @@ pipeline {
             }
         }
 
-        stage('Construire l\'image Docker avec l\'API Flask') {
+        stage('Déployer les prédictions') {
+            steps {
+                bat 'python deploy.py' 
+            }
+        }
+
+        stage('Construire l\'image Docker avec le modèle') {
             steps {
                 bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest .'
             }
@@ -64,6 +70,16 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
                     bat "docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:latest"
+                }
+            }
+        }
+
+        stage('Construire et déployer l\'image Flask') {
+            steps {
+                bat 'docker build -t %DOCKER_REGISTRY%/flask-app:latest .'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                    bat "docker push %DOCKER_REGISTRY%/flask-app:latest"
                 }
             }
         }
